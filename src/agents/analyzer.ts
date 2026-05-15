@@ -3,7 +3,7 @@ import { OperationNameDiscoveryTool } from "../tools/operationNameDiscovery.js";
 import { BddScenarioExtractorTool } from "../tools/bddScenarioExtractor.js";
 import { OperationDetailExtractorTool } from "../tools/operationDetailExtractor.js";
 import { FieldExtractorTool } from "../tools/fieldExtractor.js";
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
+import type { ChatLLM } from "../config/llm.js";
 import type { SourceData } from "./reader.js";
 import type { ResolvedFlowDefinition } from "../types/index.js";
 
@@ -26,21 +26,12 @@ export class AnalyzerAgent {
   private operationNameDiscovery: OperationNameDiscoveryTool;
   private bddScenarioExtractor: BddScenarioExtractorTool;
   private operationDetailExtractor: OperationDetailExtractorTool;
-  private apiKey: string;
-  private model: string;
-  private projectId: string;
-  private baseUrl?: string;
 
-  constructor(_llm: WatsonxChatModel) {
-    this.fieldExtractor = new FieldExtractorTool();
-    this.operationNameDiscovery = new OperationNameDiscoveryTool();
-    this.bddScenarioExtractor = new BddScenarioExtractorTool();
-    this.operationDetailExtractor = new OperationDetailExtractorTool();
-    
-    this.apiKey = process.env.WATSONX_API_KEY || "";
-    this.model = process.env.WATSONX_CHAT_MODEL || "ibm/granite-20b-code-instruct";
-    this.projectId = process.env.WATSONX_PROJECT_ID || "";
-    this.baseUrl = process.env.WATSONX_URL;
+  constructor(llm: ChatLLM) {
+    this.fieldExtractor = new FieldExtractorTool(llm);
+    this.operationNameDiscovery = new OperationNameDiscoveryTool(llm);
+    this.bddScenarioExtractor = new BddScenarioExtractorTool(llm);
+    this.operationDetailExtractor = new OperationDetailExtractorTool(llm);
   }
 
   async analyze(input: AnalyzerAgentInput): Promise<AnalysisResult> {
@@ -122,7 +113,6 @@ export class AnalyzerAgent {
     console.log("[AnalyzerAgent] Running specialized operation discovery...");
     const opsResult = await this.operationNameDiscovery.run({
       repoFiles: repoFileSources,
-      apiKey: this.apiKey, model: this.model, projectId: this.projectId, baseUrl: this.baseUrl,
     });
     if (!opsResult.success) throw new Error(`Operation discovery failed: ${opsResult.error}`);
     console.log(`[OperationNameDiscoveryTool] Found ${opsResult.operations.length} operations.`);
@@ -133,7 +123,6 @@ export class AnalyzerAgent {
       console.log("[AnalyzerAgent] Extracting remaining simple fields for serviceMetadata...");
       const fieldResult = await this.fieldExtractor.run({
         schema: schemaForExtractor, sources: combinedSources, flowDefinition,
-        apiKey: this.apiKey, model: this.model, projectId: this.projectId, baseUrl: this.baseUrl,
       });
       if (!fieldResult.success) throw new Error(`Field extraction failed: ${fieldResult.error}`);
       extractedFields.push(...fieldResult.extractedFields);
@@ -147,10 +136,6 @@ export class AnalyzerAgent {
       schema: sourceData.schema.data,
       sources: combinedSources,
       flowDefinition,
-      apiKey: this.apiKey,
-      model: this.model,
-      projectId: this.projectId,
-      baseUrl: this.baseUrl,
     });
 
     if (!fieldResult.success) throw new Error(`Field extraction failed: ${fieldResult.error}`);
@@ -163,7 +148,6 @@ export class AnalyzerAgent {
       repoFiles: repoFileSources,
       schema: sourceData.schema.data,
       flowDefinition,
-      apiKey: this.apiKey, model: this.model, projectId: this.projectId, baseUrl: this.baseUrl,
     });
 
     if (!bddResult.success || !bddResult.data) {
@@ -192,7 +176,6 @@ export class AnalyzerAgent {
         repoFiles: repoFileSources,
         schema: sourceData.schema.data,
         flowDefinition,
-        apiKey: this.apiKey, model: this.model, projectId: this.projectId, baseUrl: this.baseUrl,
     });
 
     if (!detailResult.success || !detailResult.data) {

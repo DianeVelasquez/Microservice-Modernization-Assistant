@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createWatsonxChatLLM } from "./config/llm.js";
+import { createLLM } from "./config/llm.js";
 import { MasterOrchestratorAgent } from "./agents/masterOrchestrator.js";
 import { FLOW_CONFIG_PATH } from "./config/paths.js";
 
@@ -10,21 +10,10 @@ async function main() {
   console.log("Microservice Modernization Assistant - Master Orchestrator\n");
 
   try {
-    // Validar variables de entorno
-    if (!process.env.WATSONX_API_KEY) {
-      console.error("❌ Error: WATSONX_API_KEY is not set in your .env file");
-      process.exit(1);
-    }
-    if (!process.env.WATSONX_PROJECT_ID) {
-      console.error("❌ Error: WATSONX_PROJECT_ID is not set in your .env file");
-      process.exit(1);
-    }
-
-    // Crear LLM (WatsonX)
-    console.log("🤖 Initializing IBM WatsonX...");
-    const llm = createWatsonxChatLLM();
+    console.log("🤖 Initializing LLM provider...");
+    const llm = createLLM();
     console.log(
-      `✓ WatsonX initialized: ${process.env.WATSONX_CHAT_MODEL || "ibm/granite-3-3-8b-instruct"}\n`,
+      `✓ LLM initialized: ${llm.provider} / ${llm.model}\n`,
     );
 
     // Usar siempre el Master Orchestrator

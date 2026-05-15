@@ -1,4 +1,4 @@
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
+import type { ChatLLM } from "../config/llm.js";
 import { FlowOrchestrator, type OrchestrationResult } from "../workflows/FlowOrchestrator.js";
 import { FlowConfigLoader } from "../engines/FlowConfigLoader.js";
 import { readFile } from "node:fs/promises";
@@ -37,7 +37,7 @@ const PROJECT_ROOT = resolve(__dirname, "../..");
  * - Intelligent: LLM-based content quality and cross-flow validation
  */
 export class MasterOrchestratorAgent {
-  private llm: WatsonxChatModel;
+  private llm: ChatLLM;
   private flowOrchestrator: FlowOrchestrator;
   private configPath?: string;
   private enableIntelligentValidation: boolean;
@@ -54,7 +54,7 @@ export class MasterOrchestratorAgent {
   // Execution context
   private context: ExecutionContext;
 
-  constructor(llm: WatsonxChatModel, config?: MasterOrchestratorConfig) {
+  constructor(llm: ChatLLM, config?: MasterOrchestratorConfig) {
     this.llm = llm;
     this.configPath = config?.configPath;
     this.enableIntelligentValidation = config?.enableIntelligentValidation ?? true;

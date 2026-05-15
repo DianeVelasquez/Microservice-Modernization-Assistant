@@ -1,4 +1,4 @@
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
+import type { ChatLLM } from "../config/llm.js";
 import { FlowConfigLoader } from "../engines/FlowConfigLoader.js";
 import { SourceResolver } from "../engines/SourceResolver.js";
 import { FlowExecutor, type FlowResult } from "./FlowExecutor.js";
@@ -25,7 +25,7 @@ export class FlowOrchestrator {
   private sourceResolver: SourceResolver;
   private flowExecutor: FlowExecutor;
 
-  constructor(llm: WatsonxChatModel, configPath?: string) {
+  constructor(llm: ChatLLM, configPath?: string) {
     this.flowConfigLoader = new FlowConfigLoader(configPath);
     this.sourceResolver = new SourceResolver();
     this.flowExecutor = new FlowExecutor(llm);
@@ -159,7 +159,7 @@ export class FlowOrchestrator {
  * Helper function para ejecutar todos los flujos (legacy)
  */
 export async function executeAllFlows(
-  llm: WatsonxChatModel,
+  llm: ChatLLM,
   configPath?: string,
 ): Promise<OrchestrationResult> {
   const orchestrator = new FlowOrchestrator(llm, configPath);
@@ -171,7 +171,7 @@ export async function executeAllFlows(
  */
 export async function executeFlow(
   flowName: string,
-  llm: WatsonxChatModel,
+  llm: ChatLLM,
   configPath?: string,
 ): Promise<FlowResult> {
   const orchestrator = new FlowOrchestrator(llm, configPath);

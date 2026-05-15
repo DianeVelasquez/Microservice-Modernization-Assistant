@@ -1,5 +1,4 @@
-import { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
-import { UserMessage } from "beeai-framework/backend/message";
+import type { ChatLLM } from "../config/llm.js";
 import { PromptLoader } from "../engines/PromptLoader.js";
 import type { ResolvedFlowDefinition } from "../types/index.js";
 
@@ -13,10 +12,6 @@ export interface FieldExtractionInput {
   schema: any;
   sources: FieldExtractionSource[];
   flowDefinition: ResolvedFlowDefinition; // Add flowDefinition to the input
-  apiKey: string;
-  model?: string;
-  projectId?: string;
-  baseUrl?: string;
 }
 
 export interface ExtractedField {
@@ -38,8 +33,10 @@ export class FieldExtractorTool {
   name = "FieldExtractor";
   description = "Intelligently extracts fields from multiple data sources using an LLM";
   private promptLoader: PromptLoader;
+  private llm: ChatLLM;
 
-  constructor() {
+  constructor(llm: ChatLLM) {
+    this.llm = llm;
     this.promptLoader = new PromptLoader();
   }
 
@@ -48,51 +45,18 @@ export class FieldExtractorTool {
       schema,
       sources,
       flowDefinition, // Destructure flowDefinition
-      apiKey,
-      model = "ibm/granite-3-3-8b-instruct",
-      projectId,
-      baseUrl
     } = input;
 
     try {
       // Pass flowDefinition to the prompt builder
       const prompt = await this.buildExtractionPrompt(schema, sources, flowDefinition);
 
-      console.log("[FieldExtractor] Creating WatsonX model...");
-      console.log(`  Model: ${model}`);
-      console.log(`  API Key present: ${!!apiKey}`);
-      console.log(`  Project ID present: ${!!projectId}`);
-      console.log(`  Base URL: ${baseUrl || 'default'}`);
-
-      // Use WatsonxChatModel from BeeAI Framework
-      // Pass credentials explicitly in the constructor
-      const llm = new WatsonxChatModel(model as any, {
-        apiKey,
-        baseUrl,
-        projectId,
-      });
-
-      // Add event listener for debugging
-      llm.emitter.match("*", (value, event) => {
-        console.log(`[WatsonX Event] ${event.name}:`, value);
-      });
-
-      // Configure model parameters
-      llm.config({
-        parameters: {
-          temperature: 0.1,
-          maxTokens: 4096,
-        },
-      });
-
-      console.log("[FieldExtractor] Calling WatsonX API...");
-      const response = await llm.create({
-        messages: [new UserMessage(prompt)],
+      console.log(`[FieldExtractor] Calling ${this.llm.provider} API with ${this.llm.model}...`);
+      const rawResponse = await this.llm.complete(prompt, {
+        temperature: 0.1,
+        maxTokens: 4096,
       });
       console.log("[FieldExtractor] Response received successfully");
-
-      // Extract text from response
-      const rawResponse = response.getTextContent();
 
       const extractedFields = this.parseLLMResponse(rawResponse);
 

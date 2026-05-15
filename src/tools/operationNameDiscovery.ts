@@ -1,18 +1,9 @@
-import { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
-import { UserMessage } from "beeai-framework/backend/message";
+import type { ChatLLM } from "../config/llm.js";
 import type { FieldExtractionSource } from "./fieldExtractor.js";
 
 export interface OperationNameDiscoveryInput {
 
   repoFiles: FieldExtractionSource[];
-
-  apiKey: string;
-
-  model?: string;
-
-  projectId?: string;
-
-  baseUrl?: string;
 
 }
 
@@ -47,6 +38,8 @@ export class OperationNameDiscoveryTool {
   name = "OperationNameDiscovery";
 
   description = "Discovers service operation names by analyzing repository structure and file content.";
+
+  constructor(private llm: ChatLLM) {}
 
 
 
@@ -232,19 +225,7 @@ export class OperationNameDiscoveryTool {
 
         async run(input: OperationNameDiscoveryInput): Promise<OperationNameDiscoveryOutput> {
 
-          const {
-
-            repoFiles,
-
-            apiKey,
-
-            model = "ibm/granite-20b-code-instruct",
-
-            projectId,
-
-            baseUrl
-
-          } = input;
+          const { repoFiles } = input;
 
       
 
@@ -254,25 +235,13 @@ export class OperationNameDiscoveryTool {
 
             
 
-            const llm = new WatsonxChatModel(model as any, { apiKey, baseUrl, projectId });
+            const rawResponse = await this.llm.complete(prompt, {
 
-            llm.config({
+              temperature: 0.0,
 
-              parameters: {
-
-                temperature: 0.0, // Be deterministic
-
-                maxTokens: 2048,
-
-              },
+              maxTokens: 2048,
 
             });
-
-      
-
-            const response = await llm.create({ messages: [new UserMessage(prompt)] });
-
-            const rawResponse = response.getTextContent();
 
             const operations = this.parseLLMResponse(rawResponse);
 

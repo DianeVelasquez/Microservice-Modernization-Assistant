@@ -1,5 +1,4 @@
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
-import { UserMessage } from "beeai-framework/backend/message";
+import type { ChatLLM } from "../../config/llm.js";
 import { readFile } from "node:fs/promises";
 import type {
   FlowExecutionResult,
@@ -11,9 +10,9 @@ import type {
  * Intelligent validator that uses LLM to check content quality
  */
 export class ContentValidator {
-  private llm: WatsonxChatModel;
+  private llm: ChatLLM;
 
-  constructor(llm: WatsonxChatModel) {
+  constructor(llm: ChatLLM) {
     this.llm = llm;
   }
 
@@ -45,13 +44,9 @@ export class ContentValidator {
         const prompt = this.buildValidationPrompt(flowName, data);
 
         // Call LLM to validate content
-        const response = await this.llm.create({
-          messages: [new UserMessage(prompt)],
-        });
-
         // Parse LLM response
         const validation = this.parseValidationResponse(
-          response.getTextContent(),
+          await this.llm.complete(prompt),
         );
 
         results.push({

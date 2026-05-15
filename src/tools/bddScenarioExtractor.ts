@@ -1,5 +1,4 @@
-import { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
-import { UserMessage } from "beeai-framework/backend/message";
+import type { ChatLLM } from "../config/llm.js";
 import type { FieldExtractionSource } from "./fieldExtractor.js";
 import type { ResolvedFlowDefinition } from "../types/index.js";
 
@@ -13,10 +12,6 @@ export interface BddScenarioExtractorInput {
   repoFiles: FieldExtractionSource[];
   flowDefinition: ResolvedFlowDefinition;
   schema: any; // The schema for BDD scenarios
-  apiKey: string;
-  model?: string;
-  projectId?: string;
-  baseUrl?: string;
 }
 
 export interface BddScenarioExtractorOutput {
@@ -33,6 +28,8 @@ export interface BddScenarioExtractorOutput {
 export class BddScenarioExtractorTool {
   name = "BddScenarioExtractor";
   description = "Extracts BDD scenarios from .feature and .java files for a single operation.";
+
+  constructor(private llm: ChatLLM) {}
 
   private buildPrompt(
     repoFiles: FieldExtractionSource[],
@@ -127,10 +124,6 @@ Your response MUST be a single, valid JSON object that matches the TARGET SCHEMA
       repoFiles,
       flowDefinition,
       schema,
-      apiKey,
-      model = "ibm/granite-20b-code-instruct",
-      projectId,
-      baseUrl
     } = input;
 
     const operationName = flowDefinition.operationName;
@@ -141,16 +134,10 @@ Your response MUST be a single, valid JSON object that matches the TARGET SCHEMA
     try {
       const prompt = this.buildPrompt(repoFiles, schema, operationName);
       
-      const llm = new WatsonxChatModel(model as any, { apiKey, baseUrl, projectId });
-      llm.config({
-        parameters: {
-          temperature: 0.0,
-          maxTokens: 4096,
-        },
+      const rawResponse = await this.llm.complete(prompt, {
+        temperature: 0.0,
+        maxTokens: 4096,
       });
-
-      const response = await llm.create({ messages: [new UserMessage(prompt)] });
-      const rawResponse = response.getTextContent();
       const data = this.parseLLMResponse(rawResponse);
 
       if (!data) {

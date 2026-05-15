@@ -1,7 +1,7 @@
 import { FileReaderTool } from "../tools/fileReader.js";
 import { JsonParserTool } from "../tools/jsonParser.js";
 import { RepoExplorerTool } from "../tools/repoExplorer.js";
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
+import type { ChatLLM } from "../config/llm.js";
 import type {
   ResolvedFlowDefinition,
   LoadedSchema,
@@ -39,7 +39,7 @@ export class ReaderAgent {
   private repoExplorer: RepoExplorerTool;
   private schemaLoader: SchemaLoader;
 
-  constructor(_llm: WatsonxChatModel) {
+  constructor(_llm: ChatLLM) {
     this.fileReader = new FileReaderTool();
     this.jsonParser = new JsonParserTool();
     this.repoExplorer = new RepoExplorerTool();

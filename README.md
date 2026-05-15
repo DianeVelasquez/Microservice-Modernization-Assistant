@@ -18,7 +18,7 @@ The current codebase keeps the reusable engine from the original automation whil
 
 - Reads configured sources from `resources/build.json`, `resources/release.json`, and `resources/repo`.
 - Uses `sourceHints` to focus repository discovery on relevant files.
-- Extracts modernization assessment data with WatsonX.
+- Extracts modernization assessment data with a configurable LLM provider.
 - Writes an intermediate JSON assessment.
 - Generates a Markdown modernization report.
 
@@ -53,12 +53,26 @@ Install dependencies:
 npm install
 ```
 
-Create `.env` with WatsonX credentials:
+Create `.env` with your LLM provider configuration.
+
+OpenAI-compatible providers work with OpenAI, Ollama, LM Studio, vLLM, and compatible gateways:
 
 ```env
+LLM_PROVIDER=openai-compatible
+LLM_MODEL=gpt-4o-mini
+LLM_API_KEY=your-api-key
+LLM_BASE_URL=https://api.openai.com/v1
+```
+
+For local providers that do not require an API key, omit `LLM_API_KEY` and point `LLM_BASE_URL` at the local OpenAI-compatible endpoint.
+
+WatsonX remains available as an optional provider:
+
+```env
+LLM_PROVIDER=watsonx
 WATSONX_API_KEY=your-api-key
 WATSONX_PROJECT_ID=your-project-id
-WATSONX_CHAT_MODEL=ibm/granite-3-3-8b-instruct
+LLM_MODEL=ibm/granite-3-3-8b-instruct
 WATSONX_URL=https://us-south.ml.cloud.ibm.com
 ```
 

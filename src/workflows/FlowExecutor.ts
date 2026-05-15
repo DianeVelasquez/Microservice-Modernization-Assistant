@@ -1,4 +1,4 @@
-import type { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
+import type { ChatLLM } from "../config/llm.js";
 import type { ResolvedFlowDefinition } from "../types/index.js";
 import { ReaderAgent } from "../agents/reader.js";
 import { AnalyzerAgent } from "../agents/analyzer.js";
@@ -42,7 +42,7 @@ export class FlowExecutor {
   private artifactGeneratorAgent: ArtifactGeneratorAgent;
   private quickContentValidator: QuickContentValidator;
 
-  constructor(llm: WatsonxChatModel) {
+  constructor(llm: ChatLLM) {
     this.readerAgent = new ReaderAgent(llm);
     this.analyzerAgent = new AnalyzerAgent(llm);
     this.writerAgent = new WriterAgent();
