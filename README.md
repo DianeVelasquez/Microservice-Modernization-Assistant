@@ -53,9 +53,19 @@ Install dependencies:
 npm install
 ```
 
-Create `.env` with your LLM provider configuration.
+Create `.env` with your LLM provider configuration. The app reads the generic `LLM_*` variables first, then provider-specific fallbacks.
 
-OpenAI-compatible providers work with OpenAI, Ollama, LM Studio, vLLM, and compatible gateways:
+Supported `LLM_PROVIDER` values are `openai`, `openai-compatible`, `anthropic`, `gemini`, and `watsonx`. Convenience aliases are also accepted: `gpt`, `claude`, and `google`.
+
+OpenAI / GPT:
+
+```env
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o-mini
+LLM_API_KEY=your-openai-api-key
+```
+
+OpenAI-compatible providers work with Ollama, LM Studio, vLLM, and compatible gateways:
 
 ```env
 LLM_PROVIDER=openai-compatible
@@ -65,6 +75,22 @@ LLM_BASE_URL=https://api.openai.com/v1
 ```
 
 For local providers that do not require an API key, omit `LLM_API_KEY` and point `LLM_BASE_URL` at the local OpenAI-compatible endpoint.
+
+Claude / Anthropic:
+
+```env
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-3-5-sonnet-latest
+LLM_API_KEY=your-anthropic-api-key
+```
+
+Gemini:
+
+```env
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-1.5-pro
+LLM_API_KEY=your-gemini-api-key
+```
 
 WatsonX remains available as an optional provider:
 
